@@ -12,18 +12,17 @@ This repo consists of scripts to run HyperParamater Optimization algorithms with
 
 
 ## To run an autotune experiment
-```
-Export following variables
 
+Export benchmark specific variables and autotune experiment variables mentioned below.
+```
 - **n_trials** : No.of trials in an experiment.
 - **n_jobs** : No.of parallel jobs it can run. Supports only 1 now.
-
-Export benchmark specific variables.
-For TechEmpower benchmark with Quarkus on openshift, follow [benchmark README](https://github.com/kruize/benchmarks/blob/master/techempower/README.md)
+```
+For variables to export for TechEmpower benchmark with Quarkus on openshift, follow [benchmark README](https://github.com/kruize/benchmarks/blob/master/techempower/README.md)
 
 Run the below command to start the experiment:
+```
 python3 optimize.py
-
 ```
 
 ## HyperParamater tuning, 
