@@ -16,7 +16,9 @@ limitations under the License.
 
 import csv
 import subprocess
+import os
 
+slo_data_row = int(os.getenv("slo_data_row"))
 
 def create_experiment_data_file(experiment_data_file, rows):
     """
@@ -34,12 +36,12 @@ def create_experiment_data_file(experiment_data_file, rows):
         row_count = len(csv_data)
         writer = csv.writer(file)
         if row_count == 0:
-            column = [c.strip() for c in rows[0].split(',')]
+            column = [c.strip() for c in rows[slo_data_row - 1].split(',')]
             writer.writerow(column)
-            column = [c.strip() for c in rows[1].split(',')]
+            column = [c.strip() for c in rows[slo_data_row].split(',')]
             writer.writerow(column)
         else:
-            column = [c.strip() for c in rows[1].split(',')]
+            column = [c.strip() for c in rows[slo_data_row].split(',')]
             writer.writerow(column)
 
 
@@ -119,11 +121,8 @@ def get_experiment_result(experiment_tunables):
         elif tunable["tunable_name"] == "UseTypeSpeculation":
             UseTypeSpeculation = tunable["tunable_value"]
 
-#    output = subprocess.run(["bash", "scripts/applyconfig.sh", str(cpu_request), str(memory_request)], stdout=subprocess.PIPE).stdout.decode('utf-8')
 
-#    output = subprocess.run(["bash", "scripts/applyconfig.sh", str(cpu_request), str(memory_request), str(quarkusthreadpoolcorethreads), str(quarkusthreadpoolqueuesize), str(quarkusdatasourcejdbcminsize), str(quarkusdatasourcejdbcmaxsize), str(FreqInlineSize), str(MaxInlineLevel), str(MinInliningThreshold), str(CompileThreshold), str(CompileThresholdScaling), str(ConcGCThreads), str(InlineSmallCode), str(LoopUnrollLimit), str(LoopUnrollMin), str(MinSurvivorRatio), str(NewRatio), str(TieredStopAtLevel), str(TieredCompilation), str(AllowParallelDefineClass), str(AllowVectorizeOnDemand), str(AlwaysCompileLoopMethods), str(AlwaysPreTouch), str(AlwaysTenure), str(BackgroundCompilation), str(DoEscapeAnalysis), str(UseInlineCaches), str(UseLoopPredicate), str(UseStringDeduplication), str(UseSuperWord), str(UseTypeSpeculation)],
-#                            stdout=subprocess.PIPE).stdout.decode('utf-8')
-    output = subprocess.run(["bash", "./applyconfig.sh", "4", "4096", str(quarkusthreadpoolcorethreads), str(quarkusthreadpoolqueuesize), str(quarkusdatasourcejdbcminsize), str(quarkusdatasourcejdbcmaxsize), str(FreqInlineSize), str(MaxInlineLevel), str(MinInliningThreshold), str(CompileThreshold), str(CompileThresholdScaling), str(ConcGCThreads), str(InlineSmallCode), str(LoopUnrollLimit), str(LoopUnrollMin), str(MinSurvivorRatio), str(NewRatio), str(TieredStopAtLevel), str(TieredCompilation), str(AllowParallelDefineClass), str(AllowVectorizeOnDemand), str(AlwaysCompileLoopMethods), str(AlwaysPreTouch), str(AlwaysTenure), str(BackgroundCompilation), str(DoEscapeAnalysis), str(UseInlineCaches), str(UseLoopPredicate), str(UseStringDeduplication), str(UseSuperWord), str(UseTypeSpeculation)],
+    output = subprocess.run(["bash", "./applyconfig.sh", str(cpu_request), str(memory_request), str(quarkusthreadpoolcorethreads), str(quarkusthreadpoolqueuesize), str(quarkusdatasourcejdbcminsize), str(quarkusdatasourcejdbcmaxsize), str(FreqInlineSize), str(MaxInlineLevel), str(MinInliningThreshold), str(CompileThreshold), str(CompileThresholdScaling), str(ConcGCThreads), str(InlineSmallCode), str(LoopUnrollLimit), str(LoopUnrollMin), str(MinSurvivorRatio), str(NewRatio), str(TieredStopAtLevel), str(TieredCompilation), str(AllowParallelDefineClass), str(AllowVectorizeOnDemand), str(AlwaysCompileLoopMethods), str(AlwaysPreTouch), str(AlwaysTenure), str(BackgroundCompilation), str(DoEscapeAnalysis), str(UseInlineCaches), str(UseLoopPredicate), str(UseStringDeduplication), str(UseSuperWord), str(UseTypeSpeculation)],
                             stdout=subprocess.PIPE).stdout.decode('utf-8')
     return output
 
@@ -183,18 +182,14 @@ def perform_experiment(experiment_tunables):
         file.close()
         file = open('output.txt', 'a')
         rows = output.split("\n")
-        data = rows[2]
+        data = rows[slo_data_row]
         """
         data:
         1 ,  338.3 , 765 , 0 , 0 , 0 , 0 , 0 , 0 ,  60.2367 , 21.4259 , 3.3294886353000983 , 410.36017895925215M , 0
         """
         file.write(data + "\n")
-        thrpt = data.split(" , ")[1]
-        rsp = data.split(" , ")[2]
-        maxrsp = data.split(" , ")[3]
-        thrpt_ci = data.split(" , ")[15]
-        rsp_ci = data.split(" , ")[16]
-        slo = ( 125 * float(thrpt) ) / ( 150 * float(rsp) ) / ( (25 * float(maxrsp) )/100 )
+        slo_obj_func = ( 125 * float(data.split(" , ")[1]) ) / ( 150 * float(data.split(" , ")[2]) ) / ( (25 * float(data.split(" , ")[3]) )/100 )
+        slo = slo_obj_func
         file.close()
 
         create_experiment_data_file(experiment_data_file, rows)
