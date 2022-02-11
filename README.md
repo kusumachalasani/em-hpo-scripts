@@ -66,8 +66,10 @@ SLO_DATA_ROW is the second row which will be 1.
 SLO_OBJ_FUNC defined in the above example is the RESPONSE_TIME which is the third column which is converted as "float(data.split(\" , \")[2])".
 SLO_DIRECTION is minimize as SLO_OBJ_FUNC is RESPONSE_TIME.
 
+**OUTPUT OF AN EXPERIMENT**
+Output of all trials in an experiment will be written to experiment-data.csv
+Recommendation of best config will be displayed in the console at the end of the experiment.
 ```
-
 ## List of files to update tunables to run an experiment with benchmark.
 
 | Script Name   |  Updates required for 														    |
