@@ -15,7 +15,9 @@ limitations under the License.
 """
 
 import json
+import os
 
+slo_direction = os.getenv("slo_direction")
 
 def get_all_tunables():
     """
@@ -73,7 +75,7 @@ def get_all_tunables():
     application_name = search_space["application_name"]
     objective_function = search_space["objective_function"]
     value_type = search_space["value_type"]
-    direction = search_space["direction"]
+    direction = slo_direction
     hpo_algo_impl = search_space["hpo_algo_impl"]
     tunables = search_space["tunables"]
     return application_name, direction, hpo_algo_impl, id, objective_function, tunables, value_type

@@ -18,7 +18,7 @@ function err_exit() {
 
 # Describes the usage of the script
 function usage() {
-        echo "Usage: $0 -s BENCHMARK_SERVER -e RESULTS_DIR_PATH [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--benchmark=BENCHMARK_NAME] [-w WARMUPS] [-m MEASURES] [-i TOTAL_INST] [--iter=TOTAL_ITR] [-r= set redeploy to true] [-n NAMESPACE] [-g TFB_IMAGE] [-t THREAD] [-d DURATION] [--connection=CONNECTIONS]"
+        echo "Usage: $0 [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]"
         exit -1
 }
 
@@ -37,6 +37,9 @@ do
                         slo_data_row=*)
                                 SLO_DATA_ROW=${OPTARG#*=}
                                 ;;
+			slo_direction=*)
+				SLO_DIRECTION=${OPTARG#*=}
+				;;
                         benchmark=*)
                                 BENCHMARK_NAME=${OPTARG#*=}
                                 ;;
@@ -112,6 +115,10 @@ if [ -z "${SLO_DATA_ROW}" ]; then
         SLO_DATA_ROW=4
 fi
 
+if [ -z "${SLO_DIRECTION}" ]; then
+        SLO_DIRECTION="maximize"
+fi
+
 if [ -z "${BENCHMARK_NAME}" ]; then
         BENCHMARK_NAME="techempower"
 fi
@@ -159,7 +166,7 @@ fi
 
 export n_trials=${EXPERIMENT_TRIALS}
 export n_jobs=1
-export slo_data_row=${SLO_DATA_ROW}
+export slo_data_row=${SLO_DATA_ROW} slo_direction=${SLO_DIRECTION}
 
 ### Export variables for benchmark
 export BENCHMARK_NAME=${BENCHMARK_NAME}

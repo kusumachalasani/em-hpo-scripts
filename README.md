@@ -5,14 +5,15 @@ This repo consists of scripts to run HyperParamater Optimization algorithms with
 ## To run an autotune experiment
 
 ```
-./em-hpo-run.sh [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]
+./em-hpo-run.sh [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]
 
 Example:
-./em-hpo-run.sh --trials=2 --slo="( float(data.split(\" , \")[1]) )" --slo_data_row=4 -s cluster-a.scalelab -e ./results ---benchmark=techempower -n autotune-tfb -g kusumach/tfb-qrh:1.13.2.F_mm_p -i 1 --iter=3 -d 60 -w 3 -m 3 -t 48 --connection=512 --usertunables="-server;-XX:+UseG1GC"
+./em-hpo-run.sh --trials=2 --slo="( float(data.split(\" , \")[2]) )" --slo_data_row=4 --slo-direction="minimize" -s cluster-a.scalelab -e ./results ---benchmark=techempower -n autotune-tfb -g kusumach/tfb-qrh:1.13.2.F_mm_p -i 1 --iter=3 -d 60 -w 3 -m 3 -t 48 --connection=512 --usertunables="-server;-XX:+UseG1GC"
 
 - **EXPERIMENT_TRIALS**: No.of trials in an experiment
 - **SLO_OBJ_FUNC**: SLO Objective Function
 - **SLO_DATA_ROW**: Which row is to be considered to parse the metrics for SLO. Default is based on techempower benchmark.
+- **SLO_DIRECTION**: Direction of SLO_OBJ_FUNC. Supports minimize and maximize
 - **BENCHMARK_SERVER**: Name of the cluster you are using
 - **RESULTS_DIR**: Directory to store results
 - **BENCHMARK_NAME**: Name of the benchmark. Default is techempower
@@ -28,6 +29,15 @@ Example:
 - **THREADS**: No.of threads used by hyperfoil/wrk2 client
 - **CONNECTION**: No.of connections used by hyperffoil/wrk2
 - **USER_TUNABLES**: Any specific tunable user want to mention. If there are multiple entires, it should be separated by ; and enclosed with ""
+
+For a sample output of benchmark, 
+INSTANCES , THROUGHPUT , RESPONSE_TIME , MAX_RESPONSE_TIME
+1 , 6288.45 , 42.1948 , 2162.504393000
+
+SLO_DATA_ROW is the second row which will be 1.
+SLO_OBJ_FUNC defined in the above example is the RESPONSE_TIME which is the third column which is converted as "float(data.split(\" , \")[2])".
+SLO_DIRECTION is minimize as SLO_OBJ_FUNC is RESPONSE_TIME.
+
 ```
 
 ## List of files to update tunables to run an experiment with benchmark.
