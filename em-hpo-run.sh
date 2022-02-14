@@ -232,14 +232,15 @@ fi
 sed -i "s|slo_obj_func = .*|slo_obj_func = ${SLO_OBJ_FUNC}|" experiment.py
 
 echo ""
-echo "Starting the experiments. Visit experiment.log for the progress of the run."
-echo "Each trial data will be updated in experiment-data.csv file (inside hyperparameter_tuning)."
+echo "Starting the experiments..."
+echo "Each trial data will be updated in experiment-data.csv file (inside hyperparameter_tuning) and"
+echo "the whole output of benchmark for each trial will be updated in total-output.txt"
 echo ""
 
 python3 optimize.py 2>&1 > ../experiment.log
 
 popd >/dev/null
 
+echo ""
 echo "Experiments complete."
-echo "View the recommended config in experiment.log"
 
