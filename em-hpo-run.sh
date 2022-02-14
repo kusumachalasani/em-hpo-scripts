@@ -1,25 +1,56 @@
 #!/bin/bash
+#
+# Copyright (c) 2021, 2022 Red Hat, IBM Corporation and others.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 CLUSTER_TYPE="openshift"
 TFB_DEFAULT_IMAGE="kruize/tfb-qrh:1.13.2.F_mm.v1"
-LOGFILE="${PWD}/setup.log"
-
-# checks if the previous command is executed successfully
-# input:Return value of previous command
-# output:Prompts the error message if the return value is not zero
-function err_exit() {
-        if [ $? != 0 ]; then
-                printf "$*"
-                echo
-                echo "The run failed. See setup.log for more details"
-                exit -1
-        fi
-}
 
 # Describes the usage of the script
 function usage() {
         echo "Usage: $0 [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]"
         exit -1
+}
+
+function check_err() {
+        err=$?
+        if [ ${err} -ne 0 ]; then
+                echo "$*"
+                exit 1
+        fi
+}
+
+### Clone the repos
+function clone_repos() {
+        if [ -d benchmarks ]; then
+                echo "benchmarks dir exist. Continue to use the existing repo."
+        else
+                echo
+                echo "#######################################"
+                git clone https://github.com/kruize/benchmarks.git 2>/dev/null
+                check_err "ERROR: git clone https://github.com/kruize/benchmarks.git failed."
+                echo "done"
+                echo "#######################################"
+                echo
+        fi
+}
+
+### Cleanup the benchmarks repo
+function delete_repos() {
+        echo "1. Deleting benchmarks repo"
+        rm -rf benchmarks
 }
 
 # Iterate through the commandline options
@@ -178,9 +209,37 @@ else
         export DB_TYPE="docker"
 fi
 
+echo ""
+echo "Benchmark used to run experiment is ${BENCHMARK_NAME}"
+echo ""
+
+if [[ ${BENCHMARK_NAME} == "techempower" ]]; then
+        clone_repos
+fi
+
+pushd hyperparameter_tuning >/dev/null
+
+### Cleanup old results
+mkdir -p results-old
+if [ -f output.txt ]; then
+        mv output.txt total-output.txt ./results-old
+fi
+if [ -f experiment-data.csv ]; then
+        mv experiment-data.csv ./results-old
+fi
+
 ### Update the slo of experiment
 sed -i "s|slo_obj_func = .*|slo_obj_func = ${SLO_OBJ_FUNC}|" experiment.py
 
+echo ""
+echo "Starting the experiments. Visit experiment.log for the progress of the run."
+echo "Each trial data will be updated in experiment-data.csv file (inside hyperparameter_tuning)."
+echo ""
 
-python3 optimize.py
+python3 optimize.py 2>&1 > ../experiment.log
+
+popd >/dev/null
+
+echo "Experiments complete."
+echo "View the recommended config in experiment.log"
 
