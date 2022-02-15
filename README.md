@@ -83,3 +83,4 @@ Recommendation of best config will be displayed in the console at the end of the
 
 
 For details on HyperParamter tuning, read [this](https://github.com/kruize/autotune/blob/master/hyperparameter_tuning/README.md)
+For details on techempower benchmark, read [this](https://github.com/kruize/benchmarks/blob/master/techempower/README.md)

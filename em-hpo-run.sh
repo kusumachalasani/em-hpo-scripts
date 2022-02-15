@@ -32,14 +32,12 @@ function check_err() {
 ### Clone the repos
 function clone_repos() {
         if [ -d benchmarks ]; then
-                echo "benchmarks dir exist. Continue to use the existing repo."
+                echo "Benchmarks repo exists. Continuing to use the same."
         else
-                echo
 		echo "Cloning the benchmarks repo..."
                 git clone https://github.com/kruize/benchmarks.git 2>/dev/null
                 check_err "ERROR: git clone https://github.com/kruize/benchmarks.git failed."
                 echo "done"
-                echo
         fi
 }
 
@@ -171,7 +169,8 @@ pushd hyperparameter_tuning >/dev/null
 ### Cleanup old results
 mkdir -p results-old
 if [ -f output.txt ]; then
-        mv output.txt total-output.txt ./results-old
+	echo "Moving the older results into results-old directory."
+	mv output.txt total-output.txt ./results-old
 fi
 if [ -f experiment-data.csv ]; then
         mv experiment-data.csv ./results-old
@@ -187,6 +186,10 @@ echo "the whole output of benchmark for each trial will be updated in total-outp
 echo ""
 
 python3 optimize.py 2>&1 > ../experiment.log
+
+if [ ! -f experiment-data.csv ]; then
+       echo "The configuration generated did not succeed. Experiments failed."
+fi
 
 popd >/dev/null
 
