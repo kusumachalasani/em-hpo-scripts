@@ -15,9 +15,6 @@
 # limitations under the License.
 #
 
-CLUSTER_TYPE="openshift"
-TFB_DEFAULT_IMAGE="kruize/tfb-qrh:1.13.2.F_mm.v1"
-
 # Describes the usage of the script
 function usage() {
         echo "Usage: $0 [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]"
@@ -38,11 +35,10 @@ function clone_repos() {
                 echo "benchmarks dir exist. Continue to use the existing repo."
         else
                 echo
-                echo "#######################################"
+		echo "Cloning the benchmarks repo..."
                 git clone https://github.com/kruize/benchmarks.git 2>/dev/null
                 check_err "ERROR: git clone https://github.com/kruize/benchmarks.git failed."
                 echo "done"
-                echo "#######################################"
                 echo
         fi
 }
@@ -52,6 +48,22 @@ function delete_repos() {
         echo "1. Deleting benchmarks repo"
         rm -rf benchmarks
 }
+
+CLUSTER_TYPE="openshift"
+EXPERIMENT_TRIALS=2
+SLO_OBJ_FUNC="( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )"
+SLO_DATA_ROW=4
+SLO_DIRECTION="maximize"
+BENCHMARK_NAME="techempower"
+WARMUPS=5
+MEASURES=3
+TOTAL_INST=1
+TOTAL_ITR=1
+TFB_IMAGE="kruize/tfb-qrh:1.13.2.F_mm.v1"
+NAMESPACE="autotune-tfb"
+THREAD="40"
+DURATION="60"
+CONNECTIONS="512"
 
 # Iterate through the commandline options
 while getopts s:e:w:m:i:rg:n:t:R:d:-: gopts
@@ -100,7 +112,6 @@ do
                 ;;
         e)
                 RESULTS_DIR_PATH="${OPTARG}"
-                export RESULTS_DIR=${RESULTS_DIR_PATH}
                 ;;
         w)
                 WARMUPS="${OPTARG}"
@@ -110,9 +121,6 @@ do
                 ;;
         i)
                 TOTAL_INST="${OPTARG}"
-                ;;
-        r)
-                RE_DEPLOY="true"
                 ;;
         g)
                 TFB_IMAGE="${OPTARG}"
@@ -134,65 +142,6 @@ if [[ -z "${BENCHMARK_SERVER}" || -z "${RESULTS_DIR_PATH}" ]]; then
         usage
 fi
 
-if [ -z "${EXPERIMENT_TRIALS}" ]; then
-        EXPERIMENT_TRIALS=2
-fi
-
-if [ -z "${SLO_OBJ_FUNC}" ]; then
-        SLO_OBJ_FUNC="( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )"
-fi
-
-if [ -z "${SLO_DATA_ROW}" ]; then
-        SLO_DATA_ROW=4
-fi
-
-if [ -z "${SLO_DIRECTION}" ]; then
-        SLO_DIRECTION="maximize"
-fi
-
-if [ -z "${BENCHMARK_NAME}" ]; then
-        BENCHMARK_NAME="techempower"
-fi
-
-if [ -z "${WARMUPS}" ]; then
-        WARMUPS=5
-fi
-if [ -z "${MEASURES}" ]; then
-        MEASURES=3
-fi
-
-if [ -z "${TOTAL_INST}" ]; then
-        TOTAL_INST=1
-fi
-
-if [ -z "${TOTAL_ITR}" ]; then
-        TOTAL_ITR=1
-fi
-
-if [ -z "${RE_DEPLOY}" ]; then
-        RE_DEPLOY=false
-fi
-
-if [ -z "${TFB_IMAGE}" ]; then
-        TFB_IMAGE="${TFB_DEFAULT_IMAGE}"
-fi
-
-if [ -z "${NAMESPACE}" ]; then
-        NAMESPACE="autotune-tfb"
-fi
-
-if [ -z "${THREAD}" ]; then
-        THREAD="40"
-fi
-
-if [ -z "${DURATION}" ]; then
-        DURATION="60"
-fi
-
-if [ -z "${CONNECTIONS}" ]; then
-        CONNECTIONS="512"
-fi
-
 ### Export the variables for optuna
 
 export n_trials=${EXPERIMENT_TRIALS}
@@ -200,8 +149,8 @@ export n_jobs=1
 export slo_data_row=${SLO_DATA_ROW} slo_direction=${SLO_DIRECTION}
 
 ### Export variables for benchmark
-export BENCHMARK_NAME=${BENCHMARK_NAME}
-export BENCHMARK_SERVER=${BENCHMARK_SERVER} DURATION=${DURATION} WARMUPS=${WARMUPS} MEASURES=${MEASURES} SERVER_INSTANCES=${TOTAL_INST} ITERATIONS=${TOTAL_ITR} NAMESPACE=${NAMESPACE} THREADS=${THREAD} CONNECTION=${CONNECTIONS} TFB_IMAGE=${TFB_IMAGE}
+export BENCHMARK_NAME=${BENCHMARK_NAME} BENCHMARK_SERVER=${BENCHMARK_SERVER} RESULTS_DIR=${RESULTS_DIR_PATH}
+export DURATION=${DURATION} WARMUPS=${WARMUPS} MEASURES=${MEASURES} SERVER_INSTANCES=${TOTAL_INST} ITERATIONS=${TOTAL_ITR} NAMESPACE=${NAMESPACE} THREADS=${THREAD} CONNECTION=${CONNECTIONS} TFB_IMAGE=${TFB_IMAGE}
 
 if [[ ${DB_TYPE} == "standalone" || ${DB_TYPE} == "STANDALONE" ]]; then
         export DB_TYPE=${DB_TYPE}
@@ -210,7 +159,7 @@ else
 fi
 
 echo ""
-echo "Benchmark used to run experiment is ${BENCHMARK_NAME}"
+echo "Benchmark for the experiment is ${BENCHMARK_NAME}"
 echo ""
 
 if [[ ${BENCHMARK_NAME} == "techempower" ]]; then

@@ -35,11 +35,14 @@ For more details on enabling monitoring, check [this](https://docs.openshift.com
 ```
 ./em-hpo-run.sh [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]
 
-Example:
-./em-hpo-run.sh --trials=2 --slo="( float(data.split(\" , \")[2]) )" --slo_data_row=4 --slo-direction="minimize" -s cluster-a.scalelab -e ./results ---benchmark=techempower -n autotune-tfb -g kusumach/tfb-qrh:1.13.2.F_mm_p -i 1 --iter=3 -d 60 -w 3 -m 3 -t 48 --connection=512 --usertunables="-server;-XX:+UseG1GC"
+For the techempower benchmark with default options, run as
+./em-hpo-run.sh --trials=2 -s cluster-a -e ./results ---benchmark=techempower
+
+To customize other options:
+./em-hpo-run.sh --trials=2 --slo="( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )" --slo_data_row=4 --slo-direction="maximize" -s cluster-a -e ./results ---benchmark=techempower -n autotune-tfb -g kruize/tfb-qrh:1.13.2.F_mm_p -i 1 --iter=3 -d 60 -w 3 -m 3 -t 48 --connection=512 --usertunables="-server;-XX:+UseG1GC"
 
 - **EXPERIMENT_TRIALS**: No.of trials in an experiment
-- **SLO_OBJ_FUNC**: SLO Objective Function
+- **SLO_OBJ_FUNC**: SLO Objective Function. Default is "( 125 * throughput ) / ( 150 * responsetime) / ( ( 25 * maxresponsetime) /100 )"
 - **SLO_DATA_ROW**: Which row is to be considered to parse the metrics for SLO. Default is based on techempower benchmark.
 - **SLO_DIRECTION**: Direction of SLO_OBJ_FUNC. Supports minimize and maximize
 - **BENCHMARK_SERVER**: Name of the cluster you are using
@@ -63,8 +66,8 @@ INSTANCES , THROUGHPUT , RESPONSE_TIME , MAX_RESPONSE_TIME
 1 , 6288.45 , 42.1948 , 2162.504393000
 
 SLO_DATA_ROW is the second row which will be 1.
-SLO_OBJ_FUNC defined in the above example is the RESPONSE_TIME which is the third column which is converted as "float(data.split(\" , \")[2])".
-SLO_DIRECTION is minimize as SLO_OBJ_FUNC is RESPONSE_TIME.
+SLO_OBJ_FUNC mentioned above is converted as "( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )"
+SLO_DIRECTION is maximize
 
 **OUTPUT OF AN EXPERIMENT**
 Output of all trials in an experiment will be written to experiment-data.csv
