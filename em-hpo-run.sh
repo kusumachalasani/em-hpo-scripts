@@ -17,7 +17,7 @@
 
 # Describes the usage of the script
 function usage() {
-        echo "Usage: $0 [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]"
+        echo "Usage: $0 [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] --clustertype=CLUSTER_TYPE -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]"
         exit -1
 }
 
@@ -47,7 +47,6 @@ function delete_repos() {
         rm -rf benchmarks
 }
 
-CLUSTER_TYPE="openshift"
 EXPERIMENT_TRIALS=2
 SLO_OBJ_FUNC="( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )"
 SLO_DATA_ROW=4
@@ -69,6 +68,9 @@ do
         case ${gopts} in
         -)
                 case "${OPTARG}" in
+			clustertype=*)
+				CLUSTER_TYPE==${OPTARG#*=}
+				;;
                         trials=*)
                                 EXPERIMENT_TRIALS=${OPTARG#*=}
                                 ;;
@@ -135,8 +137,8 @@ do
         esac
 done
 
-if [[ -z "${BENCHMARK_SERVER}" || -z "${RESULTS_DIR_PATH}" ]]; then
-        echo "Do set the variables - BENCHMARK_SERVER and RESULTS_DIR_PATH "
+if [[ -z "${CLUSTER_TYPE}" || -z "${BENCHMARK_SERVER}" || -z "${RESULTS_DIR_PATH}" ]]; then
+        echo "Do set the variables - CLUSTER_TYPE, BENCHMARK_SERVER and RESULTS_DIR_PATH "
         usage
 fi
 
@@ -147,7 +149,7 @@ export n_jobs=1
 export slo_data_row=${SLO_DATA_ROW} slo_direction=${SLO_DIRECTION}
 
 ### Export variables for benchmark
-export BENCHMARK_NAME=${BENCHMARK_NAME} BENCHMARK_SERVER=${BENCHMARK_SERVER} RESULTS_DIR=${RESULTS_DIR_PATH}
+export CLUSTER_TYPE=${CLUSTER_TYPE} BENCHMARK_NAME=${BENCHMARK_NAME} BENCHMARK_SERVER=${BENCHMARK_SERVER} RESULTS_DIR=${RESULTS_DIR_PATH}
 export DURATION=${DURATION} WARMUPS=${WARMUPS} MEASURES=${MEASURES} SERVER_INSTANCES=${TOTAL_INST} ITERATIONS=${TOTAL_ITR} NAMESPACE=${NAMESPACE} THREADS=${THREAD} CONNECTION=${CONNECTIONS} TFB_IMAGE=${TFB_IMAGE}
 
 if [[ ${DB_TYPE} == "standalone" || ${DB_TYPE} == "STANDALONE" ]]; then
