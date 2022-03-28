@@ -33,18 +33,19 @@ For more details on enabling monitoring, check [this](https://docs.openshift.com
 ## To run an autotune experiment
 
 ```
-./em-hpo-run.sh [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]
+./em-hpo-run.sh [--trials=EXPERIMENT_TRIALS] [--slo=SLO_OBJ_FUNC] [--slo_data_row=SLO_DATA_ROW] [--slo_direction=SLO_DIRECTION] --clustertype=CLUSTER_TYPE -s BENCHMARK_SERVER -e RESULTS_DIR [--benchmark=BENCHMARK_NAME] [-n NAMESPACE] [-g TFB_IMAGE] [-i SERVER_INSTANCES] [--iter=ITERATIONS] [-d DURATION] [-w WARMUPS] [-m MEASURES] [-t THREAD] [--connection=CONNECTION] [--usertunables USER_TUNABLES]
 
 For the techempower benchmark with default options, run as
-./em-hpo-run.sh --trials=2 -s <BENCHMARK_SERVER> -e ./results ---benchmark=techempower
+./em-hpo-run.sh --trials=2 --clustertype=<CLUSTER_TYPE> -s <BENCHMARK_SERVER> -e ./results ---benchmark=techempower
 
 To customize other options:
-./em-hpo-run.sh --trials=2 --slo="( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )" --slo_data_row=4 --slo-direction="maximize" -s cluster-a -e ./results ---benchmark=techempower -n autotune-tfb -g kruize/tfb-qrh:1.13.2.F_mm_p -i 1 --iter=3 -d 60 -w 3 -m 3 -t 48 --connection=512 --usertunables="-server;-XX:+UseG1GC"
+./em-hpo-run.sh --trials=2 --slo="( 125 \* float(data.split(\" , \")[1]) ) / ( 150 \* float(data.split(\" , \")[2]) ) / ( (25 \* float(data.split(\" , \")[3]) )/100 )" --slo_data_row=4 --slo-direction="maximize" --clustertype=openshift -s cluster-a -e ./results ---benchmark=techempower -n autotune-tfb -g kruize/tfb-qrh:1.13.2.F_mm_p -i 1 --iter=3 -d 60 -w 3 -m 3 -t 48 --connection=512 --usertunables="-server;-XX:+UseG1GC"
 
 - **EXPERIMENT_TRIALS**: No.of trials in an experiment
 - **SLO_OBJ_FUNC**: SLO Objective Function. Default is "( 125 * throughput ) / ( 150 * responsetime) / ( ( 25 * maxresponsetime) /100 )"
 - **SLO_DATA_ROW**: Which row is to be considered to parse the metrics for SLO. Default is based on techempower benchmark.
 - **SLO_DIRECTION**: Direction of SLO_OBJ_FUNC. Supports minimize and maximize
+- **CLUSTER_TYPE**: Type of cluster. Supports openshift and minikube.
 - **BENCHMARK_SERVER**: Name of the cluster where the benchmark is run.
 - **RESULTS_DIR**: Directory to store results
 - **BENCHMARK_NAME**: Name of the benchmark. Default is techempower
