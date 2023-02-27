@@ -22,9 +22,9 @@ df = df.dropna(subset=columns_to_check, how='any')
 df['k8_object_type'] = ''
 for i, row in df.iterrows():
     if row['owner_kind'] == 'ReplicaSet' and row['workload'] == '<none>':
-        df.at[i, 'k8_object_type'] = 'ReplicaSet'
+        df.at[i, 'k8_object_type'] = 'replicaset'
     elif row['owner_kind'] == 'ReplicationController' and row['workload'] == '<none>':
-        df.at[i, 'k8_object_type'] = 'ReplicationController'
+        df.at[i, 'k8_object_type'] = 'replicationcontroller'
     else:
         df.at[i, 'k8_object_type'] = row['workload_type']
 
