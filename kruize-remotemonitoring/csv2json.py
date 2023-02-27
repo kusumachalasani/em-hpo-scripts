@@ -15,8 +15,8 @@ def create_json_from_csv(csv_file_path):
         # Create a CSV reader object
         csvreader = csv.DictReader(csvfile)
 
-        container_metrics_all = {}
         for row in csvreader:
+            container_metrics_all = {}
             container_metrics = {}
             if row["cpu_request_container_avg"]:
                 container_metrics["cpuRequest"] = {
